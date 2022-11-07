@@ -46,7 +46,7 @@ function initializeEngageDigitalClickToCall(engageDigitalClickToCallConfig) {
   engageScreenshareBtn = document.getElementById(engageClickToCallConfig.screenShareBtnId)
   engageScreenshareBtn.innerText = engageClickToCallConfig.screenShareText;
   engageScreenshareBtn.addEventListener('click', screenShareController);
-  engageScreenshareBtn.disabled = true;
+  engageScreenshareBtn.hidden = true;
 
   engageLocalVideo = document.getElementById(engageClickToCallConfig.localVideoId);
   engageRemoteVideo = document.getElementById(engageClickToCallConfig.remoteVideoId);
@@ -99,6 +99,9 @@ const callDisconnectedState = {
     if (!engageDigitalClient.isConnected()) {
       engageMakeCallBtn.disabled = true;
     }
+    engageScreenshareBtn.hidden = true;
+    engageScreenshareBtn.textContent = engageClickToCallConfig.screenShareText;
+    isScreenSharing = false;
   },
   name: 'callDisconnectedState'
 }
@@ -108,7 +111,7 @@ const callCanBeEndedState = {
     engageLog('Executing callCanBeEndedState');
     engageMakeCallBtn.textContent = engageClickToCallConfig.makeCallText;
     disconnectCall();
-    engageScreenshareBtn.disabled = true;
+    engageScreenshareBtn.hidden = true;
     engageScreenshareBtn.textContent = engageClickToCallConfig.screenShareText;
     isScreenSharing = false;
   },
@@ -152,6 +155,7 @@ function connectToEngageDigital() {
 
   if (isEngageDigitalSdkLoaded) {
     const userIdentity = Math.random().toString(36).substr(2, 7);
+
     const config = {
       log: {
         console: { enable: engageClickToCallConfig.consoleLog },
@@ -274,60 +278,62 @@ function makeCall() {
 }
 
 function onNewEngageSession(session) {
-
-  engageLog('Got newRTCSession event direction is %s', session.getDirection());
+  engageLog("Got newRTCSession event direction is %s", session.getDirection());
 
   engageDigitalSession = session;
 
   /**
    * Can play some media file indicates call is ringing state
    */
-  engageDigitalSession.addEventHandler('ringing', () => {
-    updateStatus('Call: Ringing');
+  engageDigitalSession.addEventHandler("ringing", () => {
+    updateStatus("Call: Ringing");
   });
 
   /**
-    * Call is connected, can use this event to update the status of call in UI
-    */
-  engageDigitalSession.addEventHandler('connected', () => {
-    updateStatus('Call: Connected');
+   * Call is connected, can use this event to update the status of call in UI
+   */
+  engageDigitalSession.addEventHandler("connected", () => {
+    updateStatus("Call: Connected");
     handleCallStateChange(callConnectedState);
-    engageScreenshareBtn.disabled = false;
+    engageScreenshareBtn.hidden = false;
   });
 
   /**
-    * Call is disconnected by the client, can use this event to update the status of call in UI
-    */
-  engageDigitalSession.addEventHandler('disconnected', () => {
-    updateStatus('Call: DisConnected');
+   * Call is disconnected by the client, can use this event to update the status of call in UI
+   */
+  engageDigitalSession.addEventHandler("disconnected", () => {
+    updateStatus("Call: DisConnected");
 
+    handleCallStateChange(callDisconnectedState);
+    clearVideoElements();
+    engageScreenshareBtn.hidden = false;
+  });
+
+  /**
+   * Call is disconnected by the remote user, can use this event to update the status of call in UI
+   */
+  engageDigitalSession.addEventHandler("peerdisconnected", () => {
+    updateStatus("Call: Remote party disconnected");
     handleCallStateChange(callDisconnectedState);
     clearVideoElements();
   });
 
   /**
-    * Call is disconnected by the remote user, can use this event to update the status of call in UI
-    */
-  engageDigitalSession.addEventHandler('peerdisconnected', () => {
-    updateStatus('Call: Remote party disconnected');
-    handleCallStateChange(callDisconnectedState);
-    clearVideoElements();
-  });
-  /**
-    * Call is disconnected and reconneting due to collocation, as part of new call will be received and auto answer will be triggered by EngageDigital SDK
-    */
-   engageDigitalSession.addEventHandler('collocation', () => {
-    console.log("collocation triggered")
-    updateStatus('Call: Collocation occurred, Call is reconnecting...');
+   * Call is disconnected and reconneting due to collocation, as part of new call will be received and auto answer will be triggered by EngageDigital SDK
+   */
+  engageDigitalSession.addEventHandler("collocation", () => {
+    console.log("collocation triggered");
+    updateStatus("Call: Collocation occurred, Call is reconnecting...");
     handleCallStateChange(callDisconnectedState);
     clearVideoElements();
     engageScreenshareBtn.disabled = true;
   });
+
   /**
-   * Call is failed 
+   * Call is failed
    */
-  engageDigitalSession.addEventHandler('failed', () => {
-    updateStatus('Call: Failed');
+  engageDigitalSession.addEventHandler("failed", () => {
+    updateStatus("Call: Failed");
     clearVideoElements();
     handleCallStateChange(callDisconnectedState);
   });
@@ -335,34 +341,34 @@ function onNewEngageSession(session) {
   /**
    * On this event attach your local stream to the local video element
    */
-  engageDigitalSession.addEventHandler('localstream', ({ stream }) => {
+  engageDigitalSession.addEventHandler("localstream", ({ stream }) => {
     handleLocalStream(stream);
   });
 
-  engageDigitalSession.addEventHandler('localvideoadded', ({ stream }) => {
+  engageDigitalSession.addEventHandler("localvideoadded", ({ stream }) => {
     handleLocalStream(stream);
   });
 
-  engageDigitalSession.addEventHandler('localvideoremoved', ({ stream }) => {
+  engageDigitalSession.addEventHandler("localvideoremoved", ({ stream }) => {
     handleLocalStream(stream);
   });
 
   /**
-    * On this event attach remote party's stream to the remote video element
-    */
-  engageDigitalSession.addEventHandler('remotestream', ({ stream }) => {
-    updateStatus('Call: Got Remote video');
+   * On this event attach remote party's stream to the remote video element
+   */
+  engageDigitalSession.addEventHandler("remotestream", ({ stream }) => {
+    updateStatus("Call: Got Remote video");
     handleRemoteStream(stream);
   });
 
-  engageDigitalSession.addEventHandler('remotevideoadded', ({ stream }) => {
-    engageLog('Got remotevideoadded event');
+  engageDigitalSession.addEventHandler("remotevideoadded", ({ stream }) => {
+    engageLog("Got remotevideoadded event");
 
     handleRemoteStream(stream);
   });
 
-  engageDigitalSession.addEventHandler('remotevideoremoved', ({ stream }) => {
-    engageLog('Got remotevideoremoved event');
+  engageDigitalSession.addEventHandler("remotevideoremoved", ({ stream }) => {
+    engageLog("Got remotevideoremoved event");
 
     engageRemoteVideo.srcObject = null;
     engageRemoteVideo.srcObject = stream;
@@ -371,19 +377,20 @@ function onNewEngageSession(session) {
   /**
    * On this event attach the screenshare stream to the remote video element
    */
-  engageDigitalSession.addEventHandler('screensharestarted', () => {
-    engageLog('Got screensharestarted event');
-    updateStatus('Call: screen sharing');
+  engageDigitalSession.addEventHandler("screensharestarted", () => {
+    engageLog("Got screensharestarted event");
+    updateStatus("Call: screen sharing");
     isScreenSharing = true;
-    engageScreenshareBtn.textContent = engageClickToCallConfig.screenUnshareText;
+    engageScreenshareBtn.textContent =
+      engageClickToCallConfig.screenUnshareText;
   });
 
   /**
    * On this event attach the screenshare stream to the remote video element
    */
-  engageDigitalSession.addEventHandler('screensharestopped', () => {
-    engageLog('Got screensharestopped event');
-    updateStatus('Call: screen unshared');
+  engageDigitalSession.addEventHandler("screensharestopped", () => {
+    engageLog("Got screensharestopped event");
+    updateStatus("Call: screen unshared");
     isScreenSharing = false;
     engageScreenshareBtn.textContent = engageClickToCallConfig.screenShareText;
   });
@@ -391,10 +398,9 @@ function onNewEngageSession(session) {
   /**
    * Its an Incoming call, need to invoke acceptCall API on EngageDigitalSession.
    */
-  if (engageDigitalSession.getDirection() === 'incoming') {
+  if (engageDigitalSession.getDirection() === "incoming") {
     handleIncomingCall();
   }
-
 }
 
 function handleLocalStream(stream) {
@@ -497,6 +503,7 @@ function loadEngageDigitalSDK(engageDomain) {
   sdkScriptElement.type = 'text/javascript';
   sdkScriptElement.async = false;
   sdkScriptElement.src = `https://${engageDomain}/engageDigital.js`
+
   const firstScriptTag = document.getElementsByTagName('script')[0];
   firstScriptTag.parentNode.insertBefore(sdkScriptElement, firstScriptTag);
 
