@@ -25,6 +25,7 @@ let engageDigitalClient;
 let engageDigitalSession;
 
 let isScreenSharing = false;
+let isCollocationOccurred = false;
 
 /**
  * When engageDigitalClickToCallConfig object is available do the initialization on the fly.
@@ -296,6 +297,10 @@ function onNewEngageSession(session) {
     updateStatus("Call: Connected");
     handleCallStateChange(callConnectedState);
     engageScreenshareBtn.hidden = false;
+    if(isCollocationOccurred) {
+     engageScreenshareBtn.disabled = false; // During collocation the button would be disabled.
+     engageDigitalSession.toggleVideo(); // This code is to unmute the video. During collocation, by default the video will be muted.
+   }        
   });
 
   /**
@@ -307,6 +312,7 @@ function onNewEngageSession(session) {
     handleCallStateChange(callDisconnectedState);
     clearVideoElements();
     engageScreenshareBtn.hidden = false;
+    isCollocationOccurred = false;
   });
 
   /**
@@ -316,6 +322,7 @@ function onNewEngageSession(session) {
     updateStatus("Call: Remote party disconnected");
     handleCallStateChange(callDisconnectedState);
     clearVideoElements();
+    isCollocationOccurred = false;
   });
 
   /**
@@ -324,6 +331,7 @@ function onNewEngageSession(session) {
   engageDigitalSession.addEventHandler("collocation", () => {
     console.log("collocation triggered");
     updateStatus("Call: Collocation occurred, Call is reconnecting...");
+    isCollocationOccurred = true;
     handleCallStateChange(callDisconnectedState);
     clearVideoElements();
     engageScreenshareBtn.disabled = true;
