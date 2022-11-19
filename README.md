@@ -1,4 +1,4 @@
-# engage-rtc-web-client-audiovideo-collocation-demo-app
+# engage-rtc-web-client-audiovideo-collocation-demo-app-js
 
 Engage RTC collocation demo web application describs how you can easily integrate click-to-call and screen share feature into your website. The javascript files provided here will abstract away the logic of connecting to the Engage Digital platform, making the calls, binding local and remote videos to the html, enabling screenshare button, screenshare functionalities and handling the collocation event etc.
 It can be easily plugged into an existing website with minimal changes.
