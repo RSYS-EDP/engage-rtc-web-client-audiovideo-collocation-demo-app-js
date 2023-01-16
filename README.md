@@ -1,6 +1,6 @@
 # engage-rtc-web-client-audiovideo-collocation-demo-app-js
 
-Engage RTC collocation demo web application describs how you can easily integrate click-to-call and screen share feature into your website. The javascript files provided here will abstract away the logic of connecting to the Engage Digital platform, making the calls, binding local and remote videos to the html, enabling screenshare button, screenshare functionalities and handling the collocation event etc.
+Engage RTC collocation demo web application describs how you can easily integrate click-to-call, hanlde collocation and screen share feature into your website. The javascript files provided here will abstract away the logic of connecting to the Engage Digital platform, making the calls, binding local and remote videos to the html, enabling screenshare button, screenshare functionalities and handling the collocation event etc.
 It can be easily plugged into an existing website with minimal changes.
 
 #### Follow this guide step by step, to integrate Engage Platform's click-to-call and screenshare feature to your Website.
@@ -30,7 +30,6 @@ Example:
 ```html
 <div id='engage-digital-alert'></div>
 ```
-
 Create a button, so that user can click on this button to share/unshare the screen
 Example:
 ```html
@@ -42,7 +41,16 @@ So these elements can be placed anywhere and can be styled at your wish.
 As an example refer the HTML content [`app-index.html`](https://github.com/RSYS-EDP/engage-rtc-click-to-call-web-app/blob/main/app-index.html) of this Demo application to see how these elements are placed in this page.
 
 >*Note: The Ids used in these elements should be configured properly in [engage-digital-click-to-call-config.js](https://github.com/RSYS-EDP/engage-rtc-click-to-call-web-app/blob/main/engage-digital-click-to-call-config.js).
-Refer Update Configuration section for more details.*
+Refer [Update Configuration](#update-configuration) section for more details.*
+
+**Collocation:** For conference establishment, all the participants should join the media server in the same zone. If the initial call is established with a different media server, then collocation will occur so that call or media will be reestablished. 
+
+The following event has to be registered to manage collocation:
+```
+ engageDigitalSession.addEventHandler("collocation", () => {
+      //your code here..
+ }); 
+```
 
 ### Update Configuration
 Update the configuration in `engage-digital-click-to-call-config.js` with proper values. It has the following properties.
